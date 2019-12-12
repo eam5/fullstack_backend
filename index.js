@@ -1,8 +1,13 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
 
 app.use(bodyParser.json())
+
+morgan.token('body', function (req, res) { return JSON.stringify(req.body) })
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body', {stream: console.log(process.tiny)}))
 
 let persons = [
     {
@@ -40,7 +45,7 @@ const generateId = () => {
 app.post('/api/persons', (request, response) => {
     const body = request.body
     const findName = persons.some(element => element.name === body.name )
-    console.log(findName)
+    // console.log(findName)
 
       if (!body.name) {
         return response.status(400).json({
@@ -64,7 +69,7 @@ app.post('/api/persons', (request, response) => {
     }
 
     persons = persons.concat(person)
-    console.log(person)
+    // console.log(person)
 
     response.json(person)
 })
