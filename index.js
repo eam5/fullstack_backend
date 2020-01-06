@@ -1,7 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
-const Note = require('./models/note')
+const Person = require('./models/person')
 
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
@@ -53,18 +53,17 @@ const generateId = () => {
 app.post('/api/persons', (request, response) => {
     const body = request.body
   
-    if (body.content === undefined) {
+    if (body.name === undefined) {
       return response.status(400).json({ error: 'content missing' })
     }
 
-    const person = new Note ({
+    const person = new Person ({
         name: body.name,
         number: body.number,
-        // id: generateId(),
     })
   
-    person.save().then(savedNote => {
-      response.json(savedNote.toJSON())
+    person.save().then(savedPerson => {
+      response.json(savedPerson.toJSON())
     })
 })
 
@@ -105,13 +104,13 @@ app.post('/api/persons', (request, response) => {
 // })
 
 app.get('/api/persons', (request, response) => {
-    Note.find({}).then(people => {
+    Person.find({}).then(people => {
       response.json(people.map(person => person.toJSON()))
     })
   })
 
 app.get('/api/persons/:id', (request, response) => {
-    Note.findById(request.params.id).then(person => {
+    Person.findById(request.params.id).then(person => {
         response.json(person.toJSON())
     })
 })
