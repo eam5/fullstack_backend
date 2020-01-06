@@ -105,8 +105,8 @@ app.post('/api/persons', (request, response) => {
 // })
 
 app.get('/api/persons', (request, response) => {
-    Note.find({}).then(persons => {
-      response.json(persons.map(person => person.toJSON()))
+    Note.find({}).then(people => {
+      response.json(people.map(person => person.toJSON()))
     })
   })
 
