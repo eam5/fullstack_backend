@@ -67,69 +67,23 @@ app.post('/api/persons', (request, response) => {
     })
 })
 
-// app.post('/api/persons', (request, response) => {
-//     const body = request.body
-//     const findName = persons.some(element => element.name === body.name )
-//     // console.log(findName)
-
-//       if (!body.name) {
-//         return response.status(400).json({
-//             error: 'name missing'
-//         })
-//     } else if (!body.number) {
-//         return response.status(400).json({
-//             error: 'number missing'
-//         })
-//     } 
-//     else if (findName === true) {
-//         return response.status(400).json({
-//             error: 'name must be unique'
-//         })
-//     }
-
-//     const person = {
-//         name: body.name,
-//         number: body.number,
-//         id: generateId(),
-//     }
-
-//     persons = persons.concat(person)
-//     // console.log(person)
-
-//     response.json(person)
-// })
-
-// app.get('/api/persons/', (request, response) => {
-//     response.json(persons)
-// })
-
 app.get('/api/persons', (request, response) => {
     Person.find({}).then(people => {
       response.json(people.map(person => person.toJSON()))
     })
   })
 
-app.get('/api/persons/:id', (request, response) => {
-    Person.findById(request.params.id).then(person => {
-        response.json(person.toJSON())
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
+    .then(person => {
+        if (person) {
+            response.json(person.toJSON())
+        } else {
+            response.status(404).end() 
+        }
     })
+    .catch(error => next(error))
 })
-
-// app.get('/api/persons/:id', (request, response) => {
-//     const id = Number(request.params.id)
-//     console.log(id)
-//     const person = persons.find(person => {
-//         console.log(person.id, typeof person.id, id, typeof id, person.id === id)
-//         return person.id === id
-//     })
-
-//     if (person) {
-//         response.json(person)
-//     } else {
-//         response.status(404).end()
-//     }
-//     console.log(person) 
-// })
 
 app.get('/info', (request, response) => {
     const headerDate = Date()
@@ -142,12 +96,31 @@ app.get('/info', (request, response) => {
     )
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
 })
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+        return response.status(400).send({ error: 'malformatted id' })
+    } 
+
+    next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
