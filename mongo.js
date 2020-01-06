@@ -11,7 +11,7 @@ const url =
   `mongodb+srv://fullstack:${password}@cluster0-0z2fg.mongodb.net/phonebook-app?retryWrites=true&w=majority
   `
 
-mongoose.connect(url, { useNewUrlParser: true })
+mongoose.connect(url, { useUnifiedTopology: true, useNewUrlParser: true })
 
 const name = process.argv[3]
 const number = process.argv[4]

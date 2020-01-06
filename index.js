@@ -1,5 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
+const Note = require('./models/note')
+
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 
@@ -49,55 +52,85 @@ const generateId = () => {
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
-    const findName = persons.some(element => element.name === body.name )
-    // console.log(findName)
-
-      if (!body.name) {
-        return response.status(400).json({
-            error: 'name missing'
-        })
-    } else if (!body.number) {
-        return response.status(400).json({
-            error: 'number missing'
-        })
-    } 
-    else if (findName === true) {
-        return response.status(400).json({
-            error: 'name must be unique'
-        })
+  
+    if (body.content === undefined) {
+      return response.status(400).json({ error: 'content missing' })
     }
 
-    const person = {
+    const person = new Note ({
         name: body.name,
         number: body.number,
-        id: generateId(),
-    }
-
-    persons = persons.concat(person)
-    // console.log(person)
-
-    response.json(person)
+        // id: generateId(),
+    })
+  
+    person.save().then(savedNote => {
+      response.json(savedNote.toJSON())
+    })
 })
 
-app.get('/api/persons/', (request, response) => {
-    response.json(persons)
-})
+// app.post('/api/persons', (request, response) => {
+//     const body = request.body
+//     const findName = persons.some(element => element.name === body.name )
+//     // console.log(findName)
+
+//       if (!body.name) {
+//         return response.status(400).json({
+//             error: 'name missing'
+//         })
+//     } else if (!body.number) {
+//         return response.status(400).json({
+//             error: 'number missing'
+//         })
+//     } 
+//     else if (findName === true) {
+//         return response.status(400).json({
+//             error: 'name must be unique'
+//         })
+//     }
+
+//     const person = {
+//         name: body.name,
+//         number: body.number,
+//         id: generateId(),
+//     }
+
+//     persons = persons.concat(person)
+//     // console.log(person)
+
+//     response.json(person)
+// })
+
+// app.get('/api/persons/', (request, response) => {
+//     response.json(persons)
+// })
+
+app.get('/api/persons', (request, response) => {
+    Note.find({}).then(persons => {
+      response.json(persons.map(person => person.toJSON()))
+    })
+  })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    console.log(id)
-    const person = persons.find(person => {
-        console.log(person.id, typeof person.id, id, typeof id, person.id === id)
-        return person.id === id
+    Note.findById(request.params.id).then(person => {
+        response.json(person.toJSON())
     })
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-    console.log(person) 
 })
+
+// app.get('/api/persons/:id', (request, response) => {
+//     const id = Number(request.params.id)
+//     console.log(id)
+//     const person = persons.find(person => {
+//         console.log(person.id, typeof person.id, id, typeof id, person.id === id)
+//         return person.id === id
+//     })
+
+//     if (person) {
+//         response.json(person)
+//     } else {
+//         response.status(404).end()
+//     }
+//     console.log(person) 
+// })
 
 app.get('/info', (request, response) => {
     const headerDate = Date()
@@ -117,7 +150,7 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
 })
