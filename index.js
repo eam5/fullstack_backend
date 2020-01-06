@@ -44,11 +44,11 @@ app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
 })
 
-const generateId = () => {
-    return (
-        Math.floor(Math.random() * Math.floor(1000))
-    )
-}
+// const generateId = () => {
+//     return (
+//         Math.floor(Math.random() * Math.floor(1000))
+//     )
+// }
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -87,14 +87,32 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.get('/info', (request, response) => {
     const headerDate = Date()
-    console.log(headerDate)
-    response.send(
-        `<div>
-            Phonebook has info for ${persons.length} people <br />
-            ${headerDate}
-        </div>`
-    )
+    // console.log(headerDate)
+
+    Person.find({}).then(people => {
+        response.send(
+            `<div>
+                Phonebook has info for ${people.length} people <br />
+                ${headerDate}
+            </div>`
+        )
+    })
 })
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+  
+    const person = {
+        name: body.name,
+        number: body.number,
+    }
+  
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+      .then(updatedNote => {
+        response.json(updatedNote.toJSON())
+      })
+      .catch(error => next(error))
+  })
 
 app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndRemove(request.params.id)
